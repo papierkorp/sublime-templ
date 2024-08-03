@@ -1,0 +1,53 @@
+%YAML 1.2
+---
+name: Templ
+file_extensions: [templ]
+scope: source.go.templ
+extends: Packages/Go/Go.sublime-syntax
+version: 2
+
+contexts:
+  prototype:
+    - include: match-templ
+
+  match-templ:
+    - match: \btempl\s+([[:alpha:]_][[:alnum:]_].*)
+      scope: keyword.declaration.templ
+      push:
+        - meta_scope: meta.templ.block
+          scope: text.html.basic
+        - include: templ-content
+        - match: '^}$'
+          scope: punctuation.section.block.end.templ
+          pop: true
+
+  templ-content:
+    - include: match-go
+    - include: scope:text.html.basic
+
+  match-go:
+    - match: '{{'
+      scope: punctuation.section.embedded.begin.go
+      push: go-embedded
+    - match: '{'
+      scope: punctuation.section.embedded.begin.go
+      push: go-embedded
+    - match: '@'
+      scope: punctuation.section.embedded.begin.go
+      push: go-embedded
+
+  go-embedded:
+    - meta_scope: source.go.embedded
+    - include: pop-go
+    - include: Packages/Go/Go.sublime-syntax
+
+  pop-go:
+    - match: '}}'
+      scope: punctuation.section.embedded.end.go
+      pop: true
+    - match: '}'
+      scope: punctuation.section.embedded.end.go
+      pop: true
+    - match: '{' # for the @
+      scope: punctuation.section.embedded.end.go
+      pop: true
