@@ -4,7 +4,7 @@ name: Templ
 file_extensions: [templ]
 scope: source.go.templ
 extends: Packages/Go/Go.sublime-syntax
-version: 2
+version: 2.1
 
 contexts:
   prototype:
@@ -29,25 +29,58 @@ contexts:
     - match: '{{'
       scope: punctuation.section.embedded.begin.go
       push: go-embedded
+    - match: '^\s*(if|else|for|switch|case|default)\b'
+      scope: keyword.control.go
+      push: go-control-flow
     - match: '{'
       scope: punctuation.section.embedded.begin.go
       push: go-embedded
     - match: '@'
       scope: punctuation.section.embedded.begin.go
-      push: go-embedded
+      push: go-at-embedded
 
   go-embedded:
     - meta_scope: source.go.embedded
+    - match: '{'
+      push: go-embedded
     - include: pop-go
     - include: Packages/Go/Go.sublime-syntax
+
+  go-control-flow:
+    - meta_scope: source.go.embedded
+    - match: '\{(?=\s*(<|$))'
+      scope: punctuation.section.embedded.begin.go
+      set: templ-block
+    - match: '\{'
+      push: go-embedded
+    - include: Packages/Go/Go.sublime-syntax
+
+  go-at-embedded:
+    - meta_scope: source.go.embedded
+    - match: '\{(?=\s*(<|$))'
+      scope: punctuation.section.embedded.begin.go
+      set: templ-block
+    - match: '\{'
+      push: go-embedded
+    - match: '(?=\s*<)'
+      pop: true
+    - match: '$'
+      pop: true
+    - include: pop-go
+    - include: Packages/Go/Go.sublime-syntax
+
+  templ-block:
+    - meta_scope: meta.templ.block
+      scope: text.html.basic
+    - include: templ-content
+    - match: '\}'
+      scope: punctuation.section.embedded.end.go
+      pop: true
 
   pop-go:
     - match: '}}'
       scope: punctuation.section.embedded.end.go
       pop: true
     - match: '}'
-      scope: punctuation.section.embedded.end.go
-      pop: true
-    - match: '{' # for the @
       scope: punctuation.section.embedded.end.go
       pop: true
